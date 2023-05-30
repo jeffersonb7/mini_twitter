@@ -12,4 +12,4 @@ class Account(models.Model):
     )
   
     def __str__(self) -> str:
-        return self.username
+        return self.user.username

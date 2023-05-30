@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from .models import Post
 from .serializers import PostSerializer
@@ -13,7 +13,7 @@ class CustomPagination(pagination.PageNumberPagination):
     page_query_param = 'page'
 
 
-class PostsView(generics.CreateAPIView):
+class PostsView(generics.ListCreateAPIView):
     '''
         Create and list post of the session user
     '''
@@ -23,13 +23,42 @@ class PostsView(generics.CreateAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        return self.queryset.filter(owner=self.request.user)
+        account = Account.objects.get(user=self.request.user)
+        return self.queryset.filter(owner=account)
     
     def perform_create(self, serializer):
         account = Account.objects.get(user=self.request.user)
         serializer.save(owner=account)
 
 posts_view = PostsView.as_view()
+
+
+class PostsRetrieveUpdateView(generics.DestroyAPIView):
+    '''
+        Create and list post of the session user
+    '''
+    queryset = Post.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = PostSerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        account = Account.objects.get(user=self.request.user)
+        return self.queryset.filter(owner=account)
+    
+    def delete(self,request, pk):
+        from rest_framework.response import Response
+        from rest_framework import status
+        from django.shortcuts import get_object_or_404
+        post = get_object_or_404(Post, id=self.kwargs["pk"])
+        account = Account.objects.get(user=self.request.user)
+
+        if post.owner == account:
+            post.delete()
+            return Response(status=204)
+        return Response('Usário não possui permissão para deleter esse post', status=status.HTTP_400_BAD_REQUEST)
+
+posts_detail_view = PostsRetrieveUpdateView.as_view()
 
 
 class FeedsView(generics.ListAPIView):
