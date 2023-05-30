@@ -25,7 +25,7 @@ class PostsView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         account = Account.objects.get(user=self.request.user)
-        return self.queryset.filter(owner=account)
+        return self.queryset.filter(owner=account).order_by('created_at')
     
     def perform_create(self, serializer):
         account = Account.objects.get(user=self.request.user)
@@ -106,6 +106,6 @@ class FeedsFollowingView(generics.ListAPIView):
     def get_queryset(self):
         account = Account.objects.get(user=self.request.user)
         following_ids = Follow.objects.filter(user=account).values_list('follow', flat=True)
-        return Post.objects.filter(owner__in=following_ids)
+        return Post.objects.filter(owner__in=following_ids).order_by('created_at')
     
 feeds_following_view = FeedsFollowingView.as_view()
