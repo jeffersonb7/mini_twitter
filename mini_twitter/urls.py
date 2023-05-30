@@ -13,5 +13,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('openapi/', schema_view, name='openapi-schema')
+    path('openapi/', schema_view, name='openapi-schema'),
+
+    path('api/', include('accounts.urls'))
 ]
