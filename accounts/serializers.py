@@ -1,21 +1,7 @@
 from rest_framework import serializers
-from .models import Account
+from .models import Account, Follow
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-
-
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         exclude = (
-#             'id', 
-#             'groups', 
-#             'user_permissions', 
-#             'is_staff',
-#             'is_active',
-#             'last_login',
-#             'is_superuser'
-#         )
 
 
 class AccountCreateSerializer(serializers.ModelSerializer):
@@ -69,3 +55,23 @@ class AccountCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('The username or email is already exist')
         
         return account
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    follow = serializers.CharField(source='follow.user.username')
+
+    class Meta:
+        model = Follow
+        exclude = ('user', )
+
+    def create(self, validated_data):
+        """
+        Check that the start is before the stop.
+        """
+        if Follow.objects.filter(user=validated_data['user'], follow=validated_data['follow']):
+            raise serializers.ValidationError("Já está seguindo")
+        
+        follow = Follow(user=validated_data['user'], follow=validated_data['follow'])
+        follow.save()
+
+        return follow

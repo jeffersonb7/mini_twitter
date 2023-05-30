@@ -13,3 +13,16 @@ class Account(models.Model):
   
     def __str__(self) -> str:
         return self.user.username
+    
+
+class Follow(models.Model):
+    follow = models.ForeignKey(
+        Account,
+        on_delete=models.DO_NOTHING,
+        related_name='following'
+    )
+    user = models.ForeignKey(
+        Account,
+        on_delete=models.DO_NOTHING
+    )
+    created_at = models.DateTimeField(auto_now=True)

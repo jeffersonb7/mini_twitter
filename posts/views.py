@@ -1,10 +1,11 @@
-from rest_framework import generics, viewsets
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from .models import Post
 from .serializers import PostSerializer
-from accounts.models import Account
+from accounts.models import Account, Follow
 from rest_framework import pagination
-
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 
 class CustomPagination(pagination.PageNumberPagination):
     page_size = 10
@@ -47,9 +48,6 @@ class PostsRetrieveUpdateView(generics.DestroyAPIView):
         return self.queryset.filter(owner=account)
     
     def delete(self,request, pk):
-        from rest_framework.response import Response
-        from rest_framework import status
-        from django.shortcuts import get_object_or_404
         post = get_object_or_404(Post, id=self.kwargs["pk"])
         account = Account.objects.get(user=self.request.user)
 
@@ -71,7 +69,6 @@ class FeedsView(generics.ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        print(self.request.query_params)
         account = Account.objects.get(user=self.request.user)
         posts = Post.objects.exclude(owner=account).order_by('created_at')
         return posts
@@ -90,11 +87,25 @@ class FeedsUserView(generics.ListAPIView):
 
 
     def get_queryset(self):
-        
-        account = Account.objects.get(user=self.request.user)
-        return self.queryset.filter(owner=account)
+        username = self.kwargs['username']
+        account = Account.objects.get(user__username=username)
+        return self.queryset.filter(owner=account).order_by('created_at')
 
 feeds_username_view = FeedsUserView.as_view()
 
 
+class FeedsFollowingView(generics.ListAPIView):
+    '''
+        Filter post by follow users
+    '''
+    queryset = Post.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = PostSerializer
+    pagination_class = CustomPagination
 
+    def get_queryset(self):
+        account = Account.objects.get(user=self.request.user)
+        following_ids = Follow.objects.filter(user=account).values_list('follow', flat=True)
+        return Post.objects.filter(owner__in=following_ids)
+    
+feeds_following_view = FeedsFollowingView.as_view()
