@@ -10,5 +10,6 @@ class PostSerializer(serializers.ModelSerializer):
         fields = (
             'text',
             'owner',
-            'created_at'
+            'created_at',
+            'file'
         )
