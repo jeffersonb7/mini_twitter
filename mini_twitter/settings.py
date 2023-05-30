@@ -97,7 +97,7 @@ WSGI_APPLICATION = 'mini_twitter.wsgi.application'
 
 DATABASES = {
     'default': env.db_url(
-        'DATABASES_URL',
+        'DATABASE_URL',
         default='sqlite:///sqlite3.db'
     )
 }
@@ -153,3 +153,13 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+AWS_ACCESS_KEY_ID=env('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY=env('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME=env('AWS_STORAGE_BUCKET_NAME')
+AWS_QUERYSTRING_AUTH=env('AWS_QUERYSTRING_AUTH')
+
+# STATIC_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{AWS_LOCATION}/'
+MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/media/'
